@@ -18,7 +18,7 @@ public:
 	
 	/** Constructor */
 	ATAB_EEGameMode();
+
+	virtual void InitGame(const FString& MapName, const FString& Options, FString& ErrorMessage) override;
+
 };
-
-
-
