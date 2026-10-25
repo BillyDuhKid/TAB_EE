@@ -1,0 +1,206 @@
+TAB_EE Cleanup
+N - Camera
+M - Cycle Charater
+
+
+Safe Cleanup:
+Blueprints:
+- AI
+- SmartObjects
+IsolatedExamples
+Movies
+ThirdPerson
+Variant_Combat
+Variant_Platforming
+Variant_SideScrolling
+Widgets
+
+Unsafe:
+Bleprints
+- Camera (will need to replace it)
+
+
+
+___________________________________________________________________________________________________________________________________________________________
+Bringing over the Game Animation Sample
+YouTube Tutorial: https://www.youtube.com/watch?v=Xv6H89VO2bQ
+
+Code to Load the DefaultPawnClass (BP) from C++ Game Mode:
+
+void ATAB_EEGameMode::InitGame(const FString& MapName, const FString& Options, FString& ErrorMessage)
+{
+    Super::InitGame(MapName, Options, ErrorMessage);
+
+    // Load the asset safely during InitGame instead of the constructor
+    FSoftClassPath PawnClassPath(TEXT("/Game/Blueprints/SandboxCharacter_Mover_Ragdoll.SandboxCharacter_Mover_Ragdoll_C"));
+    UClass* LoadedClass = PawnClassPath.TryLoadClass<APawn>();
+
+    if (LoadedClass)
+    {
+        DefaultPawnClass = LoadedClass;
+    }
+}
+
+This should allow removal of the BP Game Mode.
+
+
+SandboxCharactor_Mover_Ragdoll
+SandboxCharacter_Mover
+APawn
+
+
+SandboxCharacter_CMC_ABP
+and
+SandboxCharacter_Mover_ABP
+
+are similar look for other "matching" blueprints and try to thin them out.
+
+
+IF DDCvars are removed need to find and remove them all.
+
+After Moving No DDCVars appear to have come over.
+LogBlueprintUserMessages: Warning: Failed to find console variable 'DDCvar.ControlStyle'.			- FIXED: SandboxCharacter_Mover
+LogBlueprintUserMessages: Warning: Failed to find console variable 'DDCvar.DrawCharacterDebugShapes'.		- FIXED
+LogBlueprintUserMessages: Warning: Failed to find console variable 'DDCVar.CharacterPhysics.DrawDebug'.		- FIXED
+LogBlueprintUserMessages: Warning: Failed to find console variable 'DDCvar.MMDatabaseLOD'.			- FIXED
+LogBlueprintUserMessages: Warning: Failed to find console variable 'DDCvar.OffsetRootBone.TranslationRadius'.	- FIXED
+LogBlueprintUserMessages: Warning: Failed to find console variable 'DDCVar.ThreadSafeAnimationUpdate.Enable'.	- FIXED
+LogBlueprintUserMessages: Warning: Failed to find console variable 'DDCVar.FootPlacementMode'.			- FIXED
+LogBlueprintUserMessages: Warning: Failed to find console variable 'DDCVar.LocomotionSetupMover'.		- FIXED
+LogBlueprintUserMessages: Warning: Failed to find console variable 'DDCvar.DrawCharacterDebugStates'.		- FIXED
+LogBlueprintUserMessages: Warning: Failed to find console variable 'DDCvar.DrawCharacterDebugGraphs'.		- FIXED
+
+
+LogBlueprintUserMessages: Warning: Failed to find console variable 'DDCvar.AnalogInputStyle'.			- FIXED: SandboxCharacter_Mover
+LogBlueprintUserMessages: Warning: Failed to find console variable 'DDCvar.Traversal.DrawDebugLevel'.		- FIXED: AC_TraversalLogic
+LogBlueprintUserMessages: Warning: Failed to find console variable 'DDCvar.Traversal.DrawDebugDuration'.	- FIXED: AC_TraversalLogic
+LogBlueprintUserMessages: Warning: Failed to find console variable 'DDCvar.DrawVisLogShapesForFoleySounds'.
+
+LogBlueprintUserMessages: Warning: Failed to find console variable 'DDCVar.CharacterPhysics.DrawDebug'.
+LogBlueprintUserMessages: Warning: Failed to find console variable 'DDCvar.DrawVisLogShapesForFoleySounds'.
+LogBlueprintUserMessages: Warning: Failed to find console variable 'DDCVar.NewGameplayCameraSystem.Enable'.
+LogBlueprintUserMessages: Warning: Failed to find console variable 'DDCVar.CharacterPhysics.DefaultProfile'.
+
+Debug Type
+Draw Debug Level
+Draw Debug Duration
+
+
+
+Moved Over Blueprints:
+GM_Sandbox_Ragdoll
+SandboxCharacter_CMC
+SandboxCharactor_Mover
+SandboxCharactor_Mover_Ragdoll
+
+
+PC_Sandbox
+- Player Controller
+
+
+SandboxCharacter_Mover_Ragdoll	- Default Pawn Class in GM_Sandbox_Ragdoll
+- SandboxCharacter_Mover_ABP
+- Anim Instance
+
+
+GM_Sandbox_Ragdall
+- GM_Sandbox
+- Game_Mode_Base
+
+
+
+
+Plugins from the Epic project Required to be enabled in projects working with it:
+
+	"FileVersion": 3,
+	"EngineAssociation": "5.8",
+	"Category": "Samples",
+	"Description": "",
+	"Plugins": [
+		{
+			"Name": "ModelingToolsEditorMode",
+			"Enabled": true,
+			"TargetAllowList": [
+				"Editor"
+			]
+		},
+		{
+			"Name": "AnimationWarping",
+			"Enabled": true
+		},
+		{
+			"Name": "RigLogic",
+			"Enabled": true
+		},
+		{
+			"Name": "LiveLink",
+			"Enabled": true
+		},
+		{
+			"Name": "LiveLinkControlRig",
+			"Enabled": true
+		},
+		{
+			"Name": "PoseSearch",
+			"Enabled": true
+		},
+		{
+			"Name": "AnimationLocomotionLibrary",
+			"Enabled": true
+		},
+		{
+			"Name": "MotionWarping",
+			"Enabled": true
+		},
+		{
+			"Name": "HairStrands",
+			"Enabled": true
+		},
+		{
+			"Name": "Chooser",
+			"Enabled": true
+		},
+		{
+			"Name": "Mover",
+			"Enabled": true
+		},
+		{
+			"Name": "NetworkPrediction",
+			"Enabled": true
+		},
+		{
+			"Name": "ChaosMover",
+			"Enabled": true
+		},
+		{
+			"Name": "AnimationLayering",
+			"Enabled": true
+		},
+		{
+			"Name": "MoverExamples",
+			"Enabled": true
+		},
+		{
+			"Name": "MovieSceneAnimMixer",
+			"Enabled": true
+		},
+		{
+			"Name": "DrawDebugLibrary",
+			"Enabled": true
+		},
+		{
+			"Name": "SmartObjects",
+			"Enabled": true
+		},
+		{
+			"Name": "Locomotor",
+			"Enabled": true
+		},
+		{
+			"Name": "CurveExpression",
+			"Enabled": true
+		},
+		{
+			"Name": "GameplayInteractions",
+			"Enabled": true
+		}
