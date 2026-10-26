@@ -1,0 +1,9 @@
+{
+  "solution": {
+    "path": "TAB_EE.sln",
+    "projects": [
+      "Intermediate\\ProjectFiles\\TAB_EE.vcxproj",
+      "Intermediate\\ProjectFiles\\UE5.vcxproj"
+    ]
+  }
+}

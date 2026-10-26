@@ -24,20 +24,7 @@ public class TAB_EE : ModuleRules
 		PrivateDependencyModuleNames.AddRange(new string[] { });
 
 		PublicIncludePaths.AddRange(new string[] {
-			"TAB_EE",
-			"TAB_EE/Variant_Platforming",
-			"TAB_EE/Variant_Platforming/Animation",
-			"TAB_EE/Variant_Combat",
-			"TAB_EE/Variant_Combat/AI",
-			"TAB_EE/Variant_Combat/Animation",
-			"TAB_EE/Variant_Combat/Gameplay",
-			"TAB_EE/Variant_Combat/Interfaces",
-			"TAB_EE/Variant_Combat/UI",
-			"TAB_EE/Variant_SideScrolling",
-			"TAB_EE/Variant_SideScrolling/AI",
-			"TAB_EE/Variant_SideScrolling/Gameplay",
-			"TAB_EE/Variant_SideScrolling/Interfaces",
-			"TAB_EE/Variant_SideScrolling/UI"
+			"TAB_EE"
 		});
 
 		// Uncomment if you are using Slate UI
