@@ -1,69 +1,56 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
-
 #include "Player/TAB_EEPlayerController.h"
+#include "Game/TAB_EEGameMode.h"
+#include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "Engine/LocalPlayer.h"
+#include "InputAction.h"
 #include "InputMappingContext.h"
-#include "Blueprint/UserWidget.h"
+#include "Kismet/GameplayStatics.h"
 #include "TAB_EE.h"
-#include "Widgets/Input/SVirtualJoystick.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(TAB_EEPlayerController)
 
-void ATAB_EEPlayerController::BeginPlay()
-{
-	Super::BeginPlay();
-
-	// only spawn touch controls on local player controllers
-	if (IsLocalPlayerController() && ShouldUseTouchControls())
-	{
-		// spawn the mobile controls widget
-		MobileControlsWidget = CreateWidget<UUserWidget>(this, MobileControlsWidgetClass);
-
-		if (MobileControlsWidget)
-		{
-			// add the controls to the player screen
-			MobileControlsWidget->AddToPlayerScreen(0);
-
-		} else {
-
-			UE_LOG(LogTAB_EE, Error, TEXT("Could not spawn mobile controls widget."));
-
-		}
-
-	}
-}
-
+//DEBUG: This maps IA_NextVisualOverride to NextVisualOverride() finding the correct IMC_Sandbox that has the binding in the editor. 
+//TODO: Once merged with TAB_Game plugin use UTAB_InputActions for a better solution. Again this is unoptimized debug only functionality.
 void ATAB_EEPlayerController::SetupInputComponent()
 {
 	Super::SetupInputComponent();
 
-	// only add IMCs for local player controllers
 	if (IsLocalPlayerController())
 	{
-		// Add Input Mapping Contexts
-		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer()))
+		if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(InputComponent))
 		{
-			for (UInputMappingContext* CurrentContext : DefaultMappingContexts)
+			UInputMappingContext* SandboxMappingContext = Cast<UInputMappingContext>(StaticLoadObject(UInputMappingContext::StaticClass(), nullptr, TEXT("/Game/Input/IMC_Sandbox.IMC_Sandbox")));
+			if (ULocalPlayer* LocalPlayer = GetLocalPlayer())
 			{
-				Subsystem->AddMappingContext(CurrentContext, 0);
+				if (UEnhancedInputLocalPlayerSubsystem* InputSubsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(LocalPlayer))
+				{
+					if (SandboxMappingContext)
+					{
+						if (!InputSubsystem->HasMappingContext(SandboxMappingContext))
+						{
+							// IMC was not yet active — add it now so actions in it can fire.
+							InputSubsystem->AddMappingContext(SandboxMappingContext, 0);
+						}
+					}
+				}
 			}
 
-			// only add these IMCs if we're not using mobile touch input
-			if (!ShouldUseTouchControls())
+			if (UInputAction* InputAction = Cast<UInputAction>(StaticLoadObject(UInputAction::StaticClass(), nullptr, TEXT("/Game/Input/IA_NextVisualOverride.IA_NextVisualOverride"))))
 			{
-				for (UInputMappingContext* CurrentContext : MobileExcludedMappingContexts)
-				{
-					Subsystem->AddMappingContext(CurrentContext, 0);
-				}
+				EnhancedInputComponent->BindAction(InputAction, ETriggerEvent::Triggered, this, &ATAB_EEPlayerController::NextVisualOverride);
 			}
 		}
 	}
 }
 
-bool ATAB_EEPlayerController::ShouldUseTouchControls() const
+// DEBUG: cycles visual overrides. Something we'd likely never do in a production game.
+void ATAB_EEPlayerController::NextVisualOverride()
 {
-	// are we on a mobile platform? Should we force touch?
-	return SVirtualJoystick::ShouldDisplayTouchInterface() || bForceTouchControls;
+	if (ATAB_EEGameMode* TAB_EEGameMode = Cast<ATAB_EEGameMode>(UGameplayStatics::GetGameMode(this)))
+	{
+		TAB_EEGameMode->DEBUG_CycleVisualOverride();
+	}
 }

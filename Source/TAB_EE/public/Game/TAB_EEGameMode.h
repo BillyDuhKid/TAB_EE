@@ -23,7 +23,7 @@ public:
 
 	/** Cycles the visual override CVar to the next index in VisualOverrides_Soft, wrapping back to -1 when the end is reached. */
 	UFUNCTION(BlueprintCallable, Category = "Visual Override")
-	void CycleVisualOverride();
+	void DEBUG_CycleVisualOverride();
 
 	/** Array of soft actor class references representing available visual overrides. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Visual Override")
