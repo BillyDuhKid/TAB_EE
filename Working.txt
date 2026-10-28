@@ -1,3 +1,35 @@
+
+
+Break out Animation so NPCs can use it bipedal class? don't limit if possible
+
+Break out input for only player controllers
+- Support re-mappable controls.
+
+Break out camera want it to be completely swappable
+
+everything comes off of Pawn... figure out how that works with extended PlayerControllers I'm already using.
+
+
+
+Sandbox_Character_Mover_Ragdoll
+	- Ragdoll
+	- Multi-Character Interactions - Needs to much optimization to be practially used.
+- Construct calls parent but is empty
+- BeginPlay calls parent
+- Tick calls parent
+- Jump DOES NOT call parent
+SandboxCharacter_Mover
+- Construct is empty
+
+Pawn
+
+UMoverNetworkPredictionLiaisonComponent
+UNetworkPredictionComponent
+UActorComponent
+
+
+
+
 TAB_EE Cleanup
 N - Camera
 M - Cycle Charater

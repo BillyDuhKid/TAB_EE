@@ -18,7 +18,11 @@ public class TAB_EE : ModuleRules
 			"StateTreeModule",
 			"GameplayStateTreeModule",
 			"UMG",
-			"Slate"
+			"Slate",
+			"Mover",
+//			"ChaosMover",
+			"NetworkPrediction",
+//			"NetworkPredictionPhysics"
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[] { });

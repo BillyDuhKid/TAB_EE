@@ -2,6 +2,7 @@
 
 #include "Game/TAB_EEGameMode.h"
 #include "Player/TAB_EEPlayerController.h"
+#include "Player/TAB_MoverPawn.h"   // TESTING
 #include "HAL/IConsoleManager.h"
 #include "TAB_EE.h"
 
@@ -26,12 +27,19 @@ void ATAB_EEGameMode::InitGame(const FString& MapName, const FString& Options, F
 {
     Super::InitGame(MapName, Options, ErrorMessage);
 
-    // Load the asset safely during InitGame instead of the constructor
-    FSoftClassPath PawnClassPath(TEXT("/Game/Blueprints/SandboxCharacter_Mover_Ragdoll.SandboxCharacter_Mover_Ragdoll_C"));
-    UClass* BPPawnClass = PawnClassPath.TryLoadClass<APawn>();
-    if (BPPawnClass)
+    if (true)   // Testing C++ replacement of APawn.
     {
-        DefaultPawnClass = BPPawnClass;
+		DefaultPawnClass = ATAB_MoverPawn::StaticClass();   // Move to constructor once BP option is removed.
+    }
+    else
+    {
+        // Load the asset safely during InitGame instead of the constructor
+        FSoftClassPath PawnClassPath(TEXT("/Game/Blueprints/SandboxCharacter_Mover_Ragdoll.SandboxCharacter_Mover_Ragdoll_C"));
+        UClass* BPPawnClass = PawnClassPath.TryLoadClass<APawn>();
+        if (BPPawnClass)
+        {
+            DefaultPawnClass = BPPawnClass;
+        }
     }
 }
 
