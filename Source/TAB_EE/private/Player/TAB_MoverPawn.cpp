@@ -9,104 +9,34 @@
 #include "MotionWarpingComponent.h"
 #include "MoverComponent.h"
 #include "PhysicsControlComponent.h"
+#include "Engine/World.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(TAB_MoverPawn)
 
 // Sets default values
 ATAB_MoverPawn::ATAB_MoverPawn()
 {
-	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
-
-	// Changes from BP defaults:
-	SetReplicates(false);
-	SpawnCollisionHandlingMethod = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-
+	// Create Component Structure
 	// Note: UCapsuleComponent required for CharacterMover to work without crashing. EXCEPTION_ACCESS_VIOLATION
 	CapsuleComponent = CreateDefaultSubobject<UCapsuleComponent>(TEXT("CapsuleComponent"));
-	CapsuleComponent->InitCapsuleSize(30.f, 86.f);
-	CapsuleComponent->SetLineThickness(0.5f);
-	CapsuleComponent->bReplicatePhysicsToAutonomousProxy = false;
-	CapsuleComponent->CanCharacterStepUpOn = ECB_No;
-	CapsuleComponent->SetCollisionProfileName(TEXT("CharacterCapsule"));
+	RootComponent = CapsuleComponent;
 
 	SkeletalMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("SkeletalMesh"));
 	SkeletalMesh->SetupAttachment(CapsuleComponent);
-	SkeletalMesh->SetRelativeLocation(FVector(0.f, 0.f, -88.f));
-	SkeletalMesh->SetRelativeRotation(FRotator(0.f, -90.f, 0.f));//NOTE: BP was FRotator(0.f, 0.f, -90.f), but that doesn't appear to be right.
 
-	const TSoftClassPtr<UAnimInstance> AnimationModeClass(
-		FSoftObjectPath(TEXT("/Game/Blueprints/SandboxCharacter_Mover_ABP.SandboxCharacter_Mover_ABP_C"))
-	);
-	if (UClass* ModeClass = AnimationModeClass.LoadSynchronous())
-	{
-		SkeletalMesh->SetAnimInstanceClass(ModeClass);
-	}
-
-	SkeletalMesh->SetSkeletalMesh(LoadObject<USkeletalMesh>(nullptr, TEXT("/Game/Characters/UEFN_Mannequin/Meshes/SKM_UEFN_Mannequin.SKM_UEFN_Mannequin")));
-	SkeletalMesh->SetMaterial(0, LoadObject<UMaterialInterface>(nullptr, TEXT("/Game/Characters/UEFN_Mannequin/Materials/MI_UEFN_Mannequin_Physics")));
-	SkeletalMesh->PhysicsTransformUpdateMode = EPhysicsTransformUpdateMode::ComponentTransformIsKinematic;
-	SkeletalMesh->SetCollisionProfileName(TEXT("Ragdoll"));
-	SkeletalMesh->SetNotifyRigidBodyCollision(true);
-	
 	PhysicsControl = CreateDefaultSubobject<UPhysicsControlComponent>(TEXT("PhysicsControl"));
 	PhysicsControl->SetupAttachment(SkeletalMesh);
-	PhysicsControl->PhysicsControlAsset = LoadObject<UPhysicsControlAsset>(nullptr, TEXT("/Game/Characters/UEFN_Mannequin/Rigs/PCA_SandboxCharacter.PCA_SandboxCharacter"));
 
-	// Don't want to troubleshoot visual overrides now, but this appears to correctly set the class
-	//const TSoftClassPtr<UActorComponent> VisualOverrideManagerClass(
-	//	FSoftObjectPath(TEXT("/Game/Blueprints/AC_VisualOverrideManager.AC_VisualOverrideManager_C"))
-	//);
-	//if (UClass* VOMClass = VisualOverrideManagerClass.LoadSynchronous())
-	//{
-	//	VisualOverrideManager = Cast<UActorComponent>(CreateDefaultSubobject(TEXT("VisualOverrideManager"), UActorComponent::StaticClass(), VOMClass, true, false));
-	//}
-	// Need to add Component Tags "VisualOverride"
-	// NOTE: BP had a VisualOverride under the SkeletalMesh.
 
-// Movement
-	// Movement Modes: Walking, Falling, Sliding, Traversing, Ragdoll
+	VisualOverride = CreateDefaultSubobject<UChildActorComponent>(TEXT("VisualOverride"));
+	VisualOverride->SetupAttachment(SkeletalMesh);
+
 	CharacterMover = CreateDefaultSubobject<UMoverComponent>(TEXT("CharacterMover"));
 	CharacterMover->SetUpdatedComponent(CapsuleComponent);
-	if (CharacterMover)
-	{
-	//Walking
-		//TSoftClassPtr<UBaseMovementMode> WalkingModeClass(
-		//	FSoftObjectPath(TEXT("/Game/Blueprints/MovementModes/BP_MovementMode_Walking.BP_MovementMode_Walking_C"))
-		//);
 
-		//UClass* LoadedClass = WalkingModeClass.LoadSynchronous();
-		//if (LoadedClass)
-		//{
-		//	UBaseMovementMode* WalkingMode = LoadedClass->GetDefaultObject<UBaseMovementMode>();
-		//	CharacterMover->AddMovementModeFromObject(TEXT("Walking"), WalkingMode);
-		//} // This is old remove if everything below works.
-		const TSoftClassPtr<UBaseMovementMode> WalkingModeClass(
-			FSoftObjectPath(TEXT("/Game/Blueprints/MovementModes/BP_MovementMode_Walking.BP_MovementMode_Walking_C"))
-		);
-		if (UClass* WalkingClass = WalkingModeClass.LoadSynchronous())
-		{
-			CharacterMover->AddMovementModeFromClass(TEXT("Walking"), WalkingClass);
-		}
-	//Falling
-		const TSoftClassPtr<UBaseMovementMode> FallingModeClass(
-			FSoftObjectPath(TEXT("/Game/Blueprints/MovementModes/BP_MovementMode_Falling.BP_MovementMode_Falling_C"))
-		);
-		if (UClass* FallingClass = FallingModeClass.LoadSynchronous())
-		{
-			CharacterMover->AddMovementModeFromClass(TEXT("Falling"), FallingClass);
-		}
-	//Slide
-		const TSoftClassPtr<UBaseMovementMode> SlideModeClass(
-		FSoftObjectPath(TEXT("/Game/Blueprints/MovementModes/BP_MovementMode_Slide.BP_MovementMode_Slide_C"))
-		);
-		if (UClass* SlideClass = SlideModeClass.LoadSynchronous())
-		{
-			CharacterMover->AddMovementModeFromClass(TEXT("Sliding"), SlideClass);
-		}
-	//Traversing
-		CharacterMover->AddMovementModeFromClass(TEXT("Traversing"), UFlyingMode::StaticClass());	
-	}
+	MotionWarping = CreateDefaultSubobject<UMotionWarpingComponent>(TEXT("MotionWarping"));
+
+	NavMover = CreateDefaultSubobject<UNavMoverComponent>(TEXT("NavMover"));
 
 	const TSoftClassPtr<UActorComponent> TraversalLogicClass(
 		FSoftObjectPath(TEXT("/Game/Blueprints/AC_TraversalLogic.AC_TraversalLogic"))
@@ -116,10 +46,6 @@ ATAB_MoverPawn::ATAB_MoverPawn()
 		AC_TraversalLogic = Cast<UActorComponent>(CreateDefaultSubobject(TEXT("AC_TraversalLogic"), UActorComponent::StaticClass(), LogicClass, true, false));
 	}
 
-	MotionWarping = CreateDefaultSubobject<UMotionWarpingComponent>(TEXT("MotionWarping"));
-	NavMover = CreateDefaultSubobject<UNavMoverComponent>(TEXT("NavMover"));
-
-// Sound
 	const TSoftClassPtr<UActorComponent> FoleyEventsClass(
 		FSoftObjectPath(TEXT("/Game/Audio/Foley/AC_FoleyEvents.AC_FoleyEvents"))
 	);
@@ -128,7 +54,6 @@ ATAB_MoverPawn::ATAB_MoverPawn()
 		AC_FoleyEvents = Cast<UActorComponent>(CreateDefaultSubobject(TEXT("AC_FoleyEvents"), UActorComponent::StaticClass(), FoleyClass, true, false));
 	}
 
-//Ragdoll
 	const TSoftClassPtr<UBaseMovementMode> RagdollModeClass(
 		FSoftObjectPath(TEXT("/Game/Blueprints/MovementModes/BP_MovementMode_Ragdoll.BP_MovementMode_Ragdoll_C"))
 	);
@@ -136,12 +61,120 @@ ATAB_MoverPawn::ATAB_MoverPawn()
 	{
 		CharacterMover->AddMovementModeFromClass(TEXT("Ragdoll"), RagdollClass);
 	}
+
+	const TSoftClassPtr<UActorComponent> VisualOverrideManagerClass(
+		FSoftObjectPath(TEXT("/Game/Blueprints/AC_VisualOverrideManager.AC_VisualOverrideManager_C"))
+		);
+	if (UClass* VOMClass = VisualOverrideManagerClass.LoadSynchronous())
+	{
+		VisualOverrideManager = Cast<UActorComponent>(CreateDefaultSubobject(TEXT("VisualOverrideManager"), UActorComponent::StaticClass(), VOMClass, true, false));
+	}
+
+	// Configure Components
+	if (CapsuleComponent)
+	{
+		CapsuleComponent->InitCapsuleSize(30.f, 86.f);
+		CapsuleComponent->SetLineThickness(0.5f);
+		CapsuleComponent->bReplicatePhysicsToAutonomousProxy = false;
+		CapsuleComponent->CanCharacterStepUpOn = ECB_No;
+		CapsuleComponent->SetCollisionProfileName(TEXT("CharacterCapsule"));
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("BillyTest - ATAB_MoverPawn Failed to create CapsuleComponent!"));
+	}
+
+	if (VisualOverride)
+	{
+		VisualOverride->ComponentTags.AddUnique(TEXT("VisualOverride"));
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("BillyTest - ATAB_MoverPawn Failed to create VisualOverride!"));
+	}
+
+	if (SkeletalMesh)
+	{
+		SkeletalMesh->SetRelativeLocation(FVector(0.f, 0.f, -88.f));
+		SkeletalMesh->SetRelativeRotation(FRotator(0.f, -90.f, 0.f));//NOTE: BP was FRotator(0.f, 0.f, -90.f), but that doesn't appear to be right.
+		SkeletalMesh->SetSkeletalMesh(LoadObject<USkeletalMesh>(nullptr, TEXT("/Game/Characters/UEFN_Mannequin/Meshes/SKM_UEFN_Mannequin.SKM_UEFN_Mannequin")));
+		SkeletalMesh->SetMaterial(0, LoadObject<UMaterialInterface>(nullptr, TEXT("/Game/Characters/UEFN_Mannequin/Materials/MI_UEFN_Mannequin_Physics")));
+		SkeletalMesh->PhysicsTransformUpdateMode = EPhysicsTransformUpdateMode::ComponentTransformIsKinematic;
+		SkeletalMesh->SetCollisionProfileName(TEXT("Ragdoll"));
+		SkeletalMesh->SetNotifyRigidBodyCollision(true);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("BillyTest - ATAB_MoverPawn Failed to create SkeletalMesh!"));
+	}
+
+	if (PhysicsControl)
+	{
+		PhysicsControl->PhysicsControlAsset = LoadObject<UPhysicsControlAsset>(nullptr, TEXT("/Game/Characters/UEFN_Mannequin/Rigs/PCA_SandboxCharacter.PCA_SandboxCharacter"));
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("BillyTest - ATAB_MoverPawn Failed to create PhysicsControl!"));
+	}
+
+	if (CharacterMover)
+	{
+		//Walking
+		const TSoftClassPtr<UBaseMovementMode> WalkingModeClass(
+			FSoftObjectPath(TEXT("/Game/Blueprints/MovementModes/BP_MovementMode_Walking.BP_MovementMode_Walking_C"))
+		);
+		if (UClass* WalkingClass = WalkingModeClass.LoadSynchronous())
+		{
+			CharacterMover->AddMovementModeFromClass(TEXT("Walking"), WalkingClass);
+		}
+		//Falling
+		const TSoftClassPtr<UBaseMovementMode> FallingModeClass(
+			FSoftObjectPath(TEXT("/Game/Blueprints/MovementModes/BP_MovementMode_Falling.BP_MovementMode_Falling_C"))
+		);
+		if (UClass* FallingClass = FallingModeClass.LoadSynchronous())
+		{
+			CharacterMover->AddMovementModeFromClass(TEXT("Falling"), FallingClass);
+		}
+		//Slide
+		const TSoftClassPtr<UBaseMovementMode> SlideModeClass(
+			FSoftObjectPath(TEXT("/Game/Blueprints/MovementModes/BP_MovementMode_Slide.BP_MovementMode_Slide_C"))
+		);
+		if (UClass* SlideClass = SlideModeClass.LoadSynchronous())
+		{
+			CharacterMover->AddMovementModeFromClass(TEXT("Sliding"), SlideClass);
+		}
+		//Traversing
+		CharacterMover->AddMovementModeFromClass(TEXT("Traversing"), UFlyingMode::StaticClass());
+	}
+
+	// Changes from BP defaults:
+	SetReplicates(false);
+	SpawnCollisionHandlingMethod = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	PrimaryActorTick.bCanEverTick = true;
 }
 
 // Called when the game starts or when spawned
 void ATAB_MoverPawn::BeginPlay()
 {
 	Super::BeginPlay();
+
+	// Moved out of constructor was causing in-editor error viewing blueprints.
+	// Assertion failed: Subsystem [File:D:\build++UE5\Sync\Engine\Source\Runtime\Engine\Classes\Animation\AnimInstance.h] [Line: 937]
+	if (SkeletalMesh)
+	{
+		if (const UWorld* World = GetWorld(); World && World->IsGameWorld())
+		{
+			const TSoftClassPtr<UAnimInstance> AnimationModeClass(
+				FSoftObjectPath(TEXT("/Game/Blueprints/SandboxCharacter_Mover_ABP.SandboxCharacter_Mover_ABP_C"))
+			);
+			if (UClass* ModeClass = AnimationModeClass.LoadSynchronous())
+			{
+				SkeletalMesh->SetAnimInstanceClass(ModeClass);
+			}
+		}
+	}
 
 	if (CharacterMover)
 	{

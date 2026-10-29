@@ -46,6 +46,9 @@ protected:
 	USkeletalMeshComponent* SkeletalMesh;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Mesh")
+	UChildActorComponent* VisualOverride;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Mesh")
 	UActorComponent* VisualOverrideManager;
 
 	// Declare the Physics Control Component
