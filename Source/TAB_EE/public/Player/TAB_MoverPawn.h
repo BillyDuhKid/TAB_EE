@@ -77,4 +77,20 @@ protected:
 	UFUNCTION()
 	void OnPostFinalize(const FMoverSyncState& SyncState, const FMoverAuxStateContext& AuxState);
 
+	// Fired just before a simulation tick, regardless of being a re-simulated frame or not.
+	// DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FMover_OnPreSimTick, const FMoverTimeStep&, TimeStep, const FMoverInputCmdContext&, InputCmd);
+	UFUNCTION()
+	void OnPreSimulationTick(const FMoverTimeStep& TimeStep, const FMoverInputCmdContext& InputCmd);
+
+	// Fired after based movement is applied to this MoverComponent. TransformDelta is this component's cumulative transform change in world space during the most recent movement simulation tick.  (See @bSupportsKinematicBasedMovement)
+	// DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FMover_OnBasedMovementApplied, const FTransform&, TransformDelta, const FMoverTimeStep&, TimeStep);
+	UFUNCTION()
+	void OnBasedMovementApplied(const FTransform& TransformDelta, const FMoverTimeStep& TimeStep);
+
+
+
+
+	FVector MoverDefaultInputs_PreSim;
+	FTransform InitialTransform;
+
 };

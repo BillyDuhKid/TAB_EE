@@ -4,12 +4,13 @@
 
 #include "Animation/AnimInstance.h"
 #include "Components/CapsuleComponent.h"
+#include "Components/SkeletalMeshComponent.h"
 #include "DefaultMovementSet/Modes/FlyingMode.h"
 #include "DefaultMovementSet/NavMoverComponent.h"
+#include "Engine/World.h"
 #include "MotionWarpingComponent.h"
 #include "MoverComponent.h"
 #include "PhysicsControlComponent.h"
-#include "Engine/World.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(TAB_MoverPawn)
 
@@ -179,7 +180,22 @@ void ATAB_MoverPawn::BeginPlay()
 	if (CharacterMover)
 	{
 		CharacterMover->OnPostFinalize.AddDynamic(this, &ATAB_MoverPawn::OnPostFinalize);
+		CharacterMover->OnPreSimulationTick.AddDynamic(this, &ATAB_MoverPawn::OnPreSimulationTick);
+		CharacterMover->OnBasedMovementApplied.AddDynamic(this, &ATAB_MoverPawn::OnBasedMovementApplied);
 	}
+
+	if (SkeletalMesh)
+	{
+		if (CharacterMover)
+		{
+			SkeletalMesh->AddTickPrerequisiteComponent(CharacterMover);
+		}
+
+		this->AddTickPrerequisiteComponent(SkeletalMesh);
+	}
+
+	MoverDefaultInputs_PreSim = this->GetActorForwardVector();
+	InitialTransform = this->GetActorTransform();
 }
 
 void ATAB_MoverPawn::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -187,6 +203,8 @@ void ATAB_MoverPawn::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	if (CharacterMover)
 	{
 		CharacterMover->OnPostFinalize.RemoveDynamic(this, &ATAB_MoverPawn::OnPostFinalize);
+		CharacterMover->OnPreSimulationTick.RemoveDynamic(this, &ATAB_MoverPawn::OnPreSimulationTick);
+		CharacterMover->OnBasedMovementApplied.RemoveDynamic(this, &ATAB_MoverPawn::OnBasedMovementApplied);
 	}
 
 	Super::EndPlay(EndPlayReason);
@@ -209,4 +227,14 @@ void ATAB_MoverPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 void ATAB_MoverPawn::OnPostFinalize(const FMoverSyncState& SyncState, const FMoverAuxStateContext& AuxState)
 {
 //	UE_LOG(LogTemp, Warning, TEXT("BillyTest - ATAB_MoverPawn::OnPostFinalize Called!"));
+}
+
+void ATAB_MoverPawn::OnPreSimulationTick(const FMoverTimeStep& TimeStep, const FMoverInputCmdContext& InputCmd)
+{
+
+}
+
+void ATAB_MoverPawn::OnBasedMovementApplied(const FTransform & TransformDelta, const FMoverTimeStep & TimeStep)
+{
+
 }
