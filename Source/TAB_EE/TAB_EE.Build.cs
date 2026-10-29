@@ -18,10 +18,12 @@ public class TAB_EE : ModuleRules
 			"StateTreeModule",
 			"GameplayStateTreeModule",
 			"UMG",
-			"Slate",
+			"Slate",	// Below here was added for Mover testing.
 			"Mover",
-//			"ChaosMover",
+			"MotionWarping",
 			"NetworkPrediction",
+			"PhysicsControl"
+//			"ChaosMover",
 //			"NetworkPredictionPhysics"
 		});
 
